@@ -5,6 +5,35 @@ import os.path
 import datetime
 
 
+def resize_img(img, resize):
+    """
+    Resize image to specific value or by ratio.
+
+    Parameters
+    ----------
+    img : PIL.Image object
+        Image to resize.
+    resize : tuple of (int, int) or float
+        The requested size in pixels, as a 2-tuple: (width, height)
+        or a float specifying resize ratio in relation to original size.
+    Returns
+    -------
+    img : PIL.Image object
+        Resized image.
+    """
+    if isinstance(resize, tuple) and len(resize) >= 2:
+        pass
+    elif isinstance(resize, float):
+        x = int(round(img.size[0] * resize))
+        y = int(round(img.size[1] * resize))
+        resize = (x, y)
+    else:
+        raise TypeError(f"expected float or tuple of (int, int), got {type(resize)}")
+
+    img = img.resize(resize)
+    return img
+
+
 samples_dir = "test-images"
 samples = [os.path.join(samples_dir, filename) for filename in os.listdir("test-images")]
 
@@ -15,14 +44,25 @@ positions = ["top-left", "top", "top-right", "right", "bottom-right",
 # position = "top-left"
 # position = "top"
 # position = "top-right"
-# position = "right"
+position = "right"
 # position = "bottom-right"
-position = "bottom"
+# position = "bottom"
 # position = "bottom-left"
 # position = "left"
 margin = 0  # in pixels
+
+# Text color
+text_color = (255, 255, 0)
+text_color = "#66ff99"
+text_color = "dodgerblue"
+
+# Resize
+resize = 0.2
+resize = ()
+
 # TODO add arguments: font color, resize
-# TODO (maybe) add text size add margin as percentage of picture width
+# colors in pillow: https://www.geeksforgeeks.org/python-pillow-colors-on-an-image/
+# TODO (maybe) add text size; add margin as percentage of picture width
 
 frames = []
 
@@ -68,10 +108,20 @@ for img_path in samples:
         print("Margin", margin)
         print("Text position (xy):", xy)
 
-        draw.text(xy=xy, text=timestamp, fill=(255, 255, 255), font=font)
+        draw.text(xy=xy, text=timestamp, fill=text_color, font=font)
+
+
+        if resize is not None:
+            img = resize_img(img, resize)
 
         frames.append(img)
 
 frame_one = frames[0]
-frame_one.save("test.gif", format="GIF", append_images=frames[1:],
+
+gif_path = os.path.join(os.getcwd(), "test.gif")
+frame_one.save(gif_path, format="GIF", append_images=frames[1:],
                save_all=True, duration=500, loop=0)
+
+os.startfile(gif_path, "open")  # testing
+
+
