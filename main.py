@@ -5,6 +5,13 @@ import os.path
 import datetime
 
 
+def verify_size(img_size, expected_img_size):
+    if img_size == expected_img_size:
+        pass
+    else:
+        raise ValueError("Image of incorrect size was provided. All images should be of the same size.")
+
+
 def resize_img(img, resize):
     """
     Resize image to specific value or by ratio.
@@ -40,11 +47,11 @@ samples = [os.path.join(samples_dir, filename) for filename in os.listdir("test-
 positions = ["top-left", "top", "top-right", "right", "bottom-right",
              "bottom", "bottom-left", "left"]
 
-# Arguments
-# position = "top-left"
+# Position
+position = "top-left"
 # position = "top"
 # position = "top-right"
-position = "right"
+# position = "right"
 # position = "bottom-right"
 # position = "bottom"
 # position = "bottom-left"
@@ -58,16 +65,26 @@ text_color = "dodgerblue"
 
 # Resize
 resize = 0.2
-resize = ()
+# resize = (960, 640)
+# resize = (960.2, 640.1)  # should raise error
 
-# TODO add arguments: font color, resize
-# colors in pillow: https://www.geeksforgeeks.org/python-pillow-colors-on-an-image/
-# TODO (maybe) add text size; add margin as percentage of picture width
+# Font size
+font_size = 128
+font_name = "arial"
+
+# TODO add arguments: font color
+# TODO (maybe) add text size;
+# TODO add text size and margin as percentage of picture height
 
 frames = []
 
+
+with PIL.Image.open(samples[0]) as img:
+    expected_img_size = img.size
+
 for img_path in samples:
     with PIL.Image.open(img_path) as img:
+        # verify_size(img_size=img.size, expected_img_size=expected_img_size)
         # creation_time = exif.get(36867)  # Returns None
         creation_time_str = img._getexif().get(36867)
         if creation_time_str is None:
@@ -79,7 +96,7 @@ for img_path in samples:
         creation_time = datetime.datetime.strptime(creation_time_str, "%Y:%m:%d %H:%M:%S")
         timestamp = creation_time.strftime("%H:%M:%S")
         draw = PIL.ImageDraw.Draw(img)
-        font = PIL.ImageFont.truetype("arial", 30)
+        font = PIL.ImageFont.truetype(font_name, font_size)
 
         pic_width, pic_height = img.size
         text_width, text_height = draw.textsize(timestamp, font)
