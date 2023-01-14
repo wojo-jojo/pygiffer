@@ -27,7 +27,9 @@ def resize_img(img, resize):
     -------
     img : PIL.Image object
         Resized image.
+
     """
+
     if isinstance(resize, tuple) and len(resize) >= 2:
         pass
     elif isinstance(resize, float):
@@ -40,6 +42,27 @@ def resize_img(img, resize):
     img = img.resize(resize)
     return img
 
+
+def percentage_of(percentage, value):
+    """
+    Calculate percentage of a numeric value. Expected input like '42%'.
+
+    Parameters
+    ----------
+    percentage : str
+        Percentage.
+    value : int or float
+        The value to calculate percentage of.
+
+    Returns
+    -------
+    float
+        Percentage of a numeric value.
+
+    """
+
+    ratio = float(percentage.rstrip(" %")) / 100
+    return ratio * value
 
 samples_dir = "test-images"
 samples = [os.path.join(samples_dir, filename) for filename in os.listdir("test-images")]
@@ -56,35 +79,49 @@ position = "top-left"
 # position = "bottom"
 # position = "bottom-left"
 # position = "left"
-margin = 0  # in pixels
-
-# Text color
-text_color = (255, 255, 0)
-text_color = "#66ff99"
-text_color = "dodgerblue"
+# margin = 0  # in pixels
+margin = "10%"  # in percentage
 
 # Resize
 resize = 0.2
 # resize = (960, 640)
 # resize = (960.2, 640.1)  # should raise error
 
-# Font size
-font_size = 128
-font_name = "arial"
+# Font
+# font_size = 128
+font_size = "10%"
+# font_name = "arial"
+font_name = "OpenSans-Regular.ttf"
 
-# TODO add arguments: font color
-# TODO (maybe) add text size;
+# Text color
+text_color = (255, 255, 0)
+text_color = "#66ff99"
+text_color = "dodgerblue"
+
+# Duration
+duration = 500  # The display duration of each frame of the multiframe gif, in milliseconds
+
 # TODO add text size and margin as percentage of picture height
-
-frames = []
-
 
 with PIL.Image.open(samples[0]) as img:
     expected_img_size = img.size
 
+# If margin is given as percentage of picture height, calculate margin in pixels
+if isinstance(margin, str):
+    margin = round(percentage_of(margin, expected_img_size[1]))
+else:
+    pass
+
+# If font size is given as percentage of picture height, calculate font size in pixels
+if isinstance(font_size, str):
+    font_size = round(percentage_of(font_size, expected_img_size[1]))
+else:
+    pass
+
+frames = []
 for img_path in samples:
     with PIL.Image.open(img_path) as img:
-        # verify_size(img_size=img.size, expected_img_size=expected_img_size)
+        verify_size(img_size=img.size, expected_img_size=expected_img_size)
         # creation_time = exif.get(36867)  # Returns None
         creation_time_str = img._getexif().get(36867)
         if creation_time_str is None:
@@ -136,9 +173,9 @@ for img_path in samples:
 frame_one = frames[0]
 
 gif_path = os.path.join(os.getcwd(), "test.gif")
+
+# loop = Integer number of times the GIF should loop. 0 means that it will loop forever. By default, the image will not loop.
 frame_one.save(gif_path, format="GIF", append_images=frames[1:],
-               save_all=True, duration=500, loop=0)
+               save_all=True, duration=duration, loop=0)
 
 os.startfile(gif_path, "open")  # testing
-
-
