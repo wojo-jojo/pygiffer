@@ -32,9 +32,9 @@ def resize_img(img, resize):
 
     if isinstance(resize, tuple) and len(resize) >= 2:
         pass
-    elif isinstance(resize, float):
-        x = int(round(img.size[0] * resize))
-        y = int(round(img.size[1] * resize))
+    elif isinstance(resize, (float, int)):
+        x = round(img.size[0] * resize)
+        y = round(img.size[1] * resize)
         resize = (x, y)
     else:
         raise TypeError(f"expected float or tuple of (int, int), got {type(resize)}")
@@ -79,11 +79,11 @@ position = "top-left"
 # position = "bottom"
 # position = "bottom-left"
 # position = "left"
-# margin = 0  # in pixels
-margin = "10%"  # in percentage
+margin = 0  # in pixels
+# margin = "10%"  # in percentage
 
 # Resize
-resize = 0.2
+resize = None
 # resize = (960, 640)
 # resize = (960.2, 640.1)  # should raise error
 
@@ -118,11 +118,12 @@ if isinstance(font_size, str):
 else:
     pass
 
+font = PIL.ImageFont.truetype(font_name, font_size)
+
 frames = []
 for img_path in samples:
     with PIL.Image.open(img_path) as img:
         verify_size(img_size=img.size, expected_img_size=expected_img_size)
-        # creation_time = exif.get(36867)  # Returns None
         creation_time_str = img._getexif().get(36867)
         if creation_time_str is None:
             raise RuntimeError(f"Failed to extract timestamp from image metadata: {os.path.basename(img_path)}."
@@ -133,27 +134,33 @@ for img_path in samples:
         creation_time = datetime.datetime.strptime(creation_time_str, "%Y:%m:%d %H:%M:%S")
         timestamp = creation_time.strftime("%H:%M:%S")
         draw = PIL.ImageDraw.Draw(img)
-        font = PIL.ImageFont.truetype(font_name, font_size)
 
         pic_width, pic_height = img.size
         text_width, text_height = draw.textsize(timestamp, font)
 
+        # Consider font's offset.
+        x_offset = font.getoffset(timestamp)[0]
+        y_offset = font.getoffset(timestamp)[1]
+
+        print("x offset:", x_offset)
+        print("y offset:", y_offset)
+
         if position == "top-left":
-            xy = (margin, margin)
+            xy = (margin - x_offset, margin - y_offset)
         elif position == "top":
-            xy = (pic_width / 2, margin)
+            xy = (pic_width / 2 - text_width / 2, margin - y_offset)
         elif position == "top-right":
-            xy = (pic_width - margin - text_width, margin)
+            xy = (pic_width - margin - text_width, margin - y_offset)
         elif position == "right":
-            xy = (pic_width - margin - text_width, pic_height / 2)
+            xy = (pic_width - margin - text_width, pic_height / 2 - text_height / 2)
         elif position == "bottom-right":
             xy = (pic_width - margin - text_width, pic_height - text_height - margin)
         elif position == "bottom":
-            xy = (pic_width / 2, pic_height - text_height - margin)
+            xy = (pic_width / 2 - text_width / 2, pic_height - text_height - margin)
         elif position == "bottom-left":
-            xy = (margin, pic_height - text_height - margin)
+            xy = (margin - x_offset, pic_height - text_height - margin)
         elif position == "left":
-            xy = (margin, pic_height / 2)
+            xy = (margin - x_offset, pic_height / 2 - text_height / 2)
         else:
             raise ValueError(f"Provided position {position} is invalid. Select a correct position.")
 
