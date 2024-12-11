@@ -1,2 +1,2 @@
-# pystamper
-A project aiming to create a tool to add timestamps to images.
+# pygiffer
+A project aiming to create a tool for creating a gif with a timestamp from a set of images.
